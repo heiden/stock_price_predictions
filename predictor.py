@@ -1,5 +1,4 @@
 import math
-import pandas_datareader as web
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
@@ -7,11 +6,9 @@ from keras.models import Sequential
 from keras.layers import Dense, LSTM
 import matplotlib.pyplot as plt
 
-plt.style.use('fivethirtyeight')
-
 # sample: Petrobras' stock
 # df = web.DataReader('AAPL', data_source = 'yahoo', start = '2012-01-01', end = '2019-12-17')
-df = pd.read_csv('PETR4.SA.csv')
+df = pd.read_csv('GOOG.csv')
 # print(df)
 
 # plt.figure(figsize = (16, 8))
@@ -21,7 +18,7 @@ df = pd.read_csv('PETR4.SA.csv')
 # plt.ylabel('close price', fontsize = 10)
 # plt.show()
 
-data = df.filter(['Close'])
+data = df.filter(['Adj Close'])
 dataset = data.values
 training_data_len = math.ceil(len(dataset) * 0.80)
 
@@ -31,9 +28,10 @@ scaled_data = scaler.fit_transform(dataset)
 train_data = scaled_data[0:training_data_len, :]
 
 x_train, y_train = [], []
+window_size = 60
 
-for i in range(60, len(train_data)):
-  x_train.append(train_data[i-60:i, 0])
+for i in range(window_size, len(train_data)):
+  x_train.append(train_data[i-window_size:i, 0])
   y_train.append(train_data[i, 0])
 
 x_train, y_train = np.array(x_train), np.array(y_train)
@@ -51,10 +49,10 @@ model.add(Dense(1))
 model.compile(optimizer = 'adam', loss = 'mean_squared_error')
 model.fit(x_train, y_train, batch_size = 1, epochs = 1)
 
-test_data = scaled_data[training_data_len - 60:, :]
+test_data = scaled_data[training_data_len - window_size:, :]
 x_test = []
-for i in range(60, len(test_data)):
-  x_test.append(test_data[i-60:i, 0])
+for i in range(window_size, len(test_data)):
+  x_test.append(test_data[i-window_size:i, 0])
 x_test = np.array(x_test)
 x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
 y_test = dataset[training_data_len:, :]
@@ -69,31 +67,34 @@ train = data[:training_data_len]
 valid = data[training_data_len:]
 valid['Predictions'] = predictions
 
-plt.figure(figsize = (16, 8))
+plt.figure(figsize = (12, 8))
 plt.title('model')
-plt.xlabel('date', fontsize = 18)
-plt.ylabel('predicted price', fontsize = 18)
-plt.plot(train['Close'])
-plt.plot(valid[['Close', 'Predictions']])
+plt.xlabel('date', fontsize = 14)
+plt.ylabel('predicted price', fontsize = 14)
+plt.plot(train['Adj Close'])
+plt.plot(valid[['Adj Close', 'Predictions']])
 plt.legend(['Train', 'Validation', 'Predictions'], loc = 'lower right')
-plt.show()
+plt.savefig('single_feature.png')
 
-# check the quota... didnt really understand (41:50)
+print('training_data_len: ', training_data_len)
+print('tamanho train: ', len(train))
+print('tamanho valid: ', len(valid))
+
 # predict closing price in x days
 
-copia_do_df = pd.read_csv('PETR4.SA.csv')
-new_df = copia_do_df.filter(['Close'])
+copia_do_df = pd.read_csv('GOOG.csv')
+new_df = copia_do_df.filter(['Adj Close'])
 
-last_60_days = new_df[-60:].values
+last_window_size_days = new_df[-window_size:].values
 
-last_60_days_scaled = scaler.transform(last_60_days)
+last_window_size_days_scaled = scaler.transform(last_window_size_days)
 
 X_test = []
-X_test.append(last_60_days_scaled)
+X_test.append(last_window_size_days_scaled)
 X_test = np.array(X_test)
 X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 
 predicted_price = model.predict(X_test)
 predicted_price = scaler.inverse_transform(predicted_price)
-print(last_60_days)
+print(last_window_size_days)
 print(predicted_price)
