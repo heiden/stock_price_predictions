@@ -15,7 +15,7 @@ def datetime_to_timestamp(x):
 dataset_train = pd.read_csv('GOOG.csv')
 
 # Select features (columns) to be involved intro training and predictions
-cols = list(dataset_train)[5:6]
+cols = list(dataset_train)[4:6] # [5:6] for just 'Adj Close'
 
 # Extract dates (will be used in visualization)
 datelist_train = list(dataset_train['Date'])
