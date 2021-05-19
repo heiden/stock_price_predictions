@@ -7,6 +7,16 @@ def avg(list):
   else:
     return sum(list) / len(list)
 
+def export(dataframe, year, ticker):
+  header = 'Date,Open,High,Low,Close,Adj Close,Volume,Sentiment\n'
+
+  with open('results/{}/{}.csv'.format(year, ticker), 'w') as file:
+    file.write(header)
+    for line in dataframe.values:
+      file.write(','.join(map(str, line)))
+      file.write('\n')
+
+
 years = ['2019', '2020']
 tickers = ['AAPL', 'MSFT', 'AMZN', 'GOOG', 'FB', 'BRK-B', 'V', 'WMT', 'JNJ', 'PG']
 # tickers = ['GOOG']
@@ -37,5 +47,4 @@ for year in years:
 
     df['Sentiment'] = sentiment_column
 
-    with open('results/{}/{}.csv'.format(year, ticker), 'w') as file:
-      file.write(df.to_string())
+    export(df, year, ticker)

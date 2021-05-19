@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 # sample: Petrobras' stock
 # df = web.DataReader('AAPL', data_source = 'yahoo', start = '2012-01-01', end = '2019-12-17')
 df = pd.read_csv('GOOG.csv')
+# df = pd.read_csv('sentiment_analysis/results/2019/V2.csv')
 # print(df)
 
 # plt.figure(figsize = (16, 8))
@@ -20,6 +21,7 @@ df = pd.read_csv('GOOG.csv')
 
 data = df.filter(['Adj Close', 'Sentiment'])
 dataset = data.values
+print(dataset)
 training_data_len = math.ceil(len(dataset) * 0.80)
 
 scaler = MinMaxScaler(feature_range = (0, 1))
