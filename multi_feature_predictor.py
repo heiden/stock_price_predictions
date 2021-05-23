@@ -12,7 +12,7 @@ def datetime_to_timestamp(x):
   return datetime.strptime(x.strftime('%Y%m%d'), '%Y%m%d')
 
 # Importing Training Set
-dataset_train = pd.read_csv('GOOG.csv')
+dataset_train = pd.read_csv('sentiment_analysis/results/2019/AAPL.csv')
 
 # Select features (columns) to be involved intro training and predictions
 cols = list(dataset_train)[4:6] # [5:6] for just 'Adj Close'

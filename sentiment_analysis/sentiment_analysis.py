@@ -17,7 +17,7 @@ def export(dataframe, year, ticker):
       file.write('\n')
 
 
-years = ['2019', '2020']
+years = ['2016', '2017', '2018']
 tickers = ['AAPL', 'MSFT', 'AMZN', 'GOOG', 'FB', 'BRK-B', 'V', 'WMT', 'JNJ', 'PG']
 # tickers = ['GOOG']
 
