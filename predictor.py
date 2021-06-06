@@ -82,7 +82,7 @@ for ticker in tickers:
 
   rmse = np.sqrt(np.mean(((predictions - y_test)**2)))
   normalised_rmse = rmse/(max(y_test) - min(y_test))
-  with open('plots/metrics', 'a') as f:
+  with open('plots/metrics_com', 'a') as f:
     f.write('{},{},{}\n'.format(ticker, rmse, normalised_rmse))
 
   train = data[:training_data_len]
