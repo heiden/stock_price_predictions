@@ -43,6 +43,7 @@ for ticker in tickers:
   scaled_data = []
   for i in range(len(dataset)):
     scaled_data.append(np.array([scaled_adj_close[i][0], dataset[i][-1]]))
+
   scaled_data = np.array(scaled_data)
 
   train_data = scaled_data[0:training_data_len, :]
@@ -61,43 +62,69 @@ for ticker in tickers:
 
   # build model
   model = Sequential()
-  model.add(LSTM(50, return_sequences = True, input_shape = (x_train.shape[1], 1)))
-  model.add(LSTM(50, return_sequences = False))
-  model.add(Dense(25))
+  # model.add(LSTM(50, return_sequences = True, input_shape = (x_train.shape[1], 1)))
+  # model.add(LSTM(50, return_sequences = False))
+  # model.add(Dense(25))
+  # model.add(Dense(1))
+  model.add(LSTM(64, return_sequences = True, input_shape = (x_train.shape[1], 1)))
+  model.add(LSTM(32, return_sequences=False))
   model.add(Dense(1))
 
   model.compile(optimizer = 'adam', loss = 'mean_squared_error')
-  model.fit(x_train, y_train, batch_size = 128, epochs = 50)
+  model.fit(x_train, y_train, batch_size = 1, epochs = 50)
 
-  test_data = scaled_data[training_data_len - window_size:, 0]
-  x_test = []
-  for i in range(window_size, len(test_data)):
-    x_test.append(test_data[i-window_size:i])
-  x_test = np.array(x_test)
-  x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
-  y_test = dataset[training_data_len:, 0]
+  # parada do xande
+  # test_data = scaled_data[training_data_len - window_size:, 0]
+  # x_test = []
+  # for i in range(window_size, len(test_data)):
+  #   x_test.append(test_data[i-window_size:i])
+  # x_test = np.array(x_test)
+  # x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
+  # y_test = dataset[training_data_len:, 0]
 
-  predictions = model.predict(x_test)
-  predictions = scaler.inverse_transform(predictions)
+  # predictions = model.predict(x_test)
+  # predictions = scaler.inverse_transform(predictions)
+  # ------
 
-  rmse = np.sqrt(np.mean(((predictions - y_test)**2)))
-  normalised_rmse = rmse/(max(y_test) - min(y_test))
-  with open('plots/metrics_com', 'a') as f:
-    f.write('{},{},{}\n'.format(ticker, rmse, normalised_rmse))
+  listinha_bunitinha = scaled_data[training_data_len - window_size:training_data_len, 0]
+  listinha_bunitinha = np.reshape(listinha_bunitinha, (listinha_bunitinha.shape[0], 1))
+  a = np.transpose(listinha_bunitinha)
+  a = np.reshape(a, (a.shape[0], a.shape[1], 1))
+
+  b = [dataset[training_data_len:training_data_len+15]]
+  c = model.predict(a)
+  listinha_bunitinha = np.concatenate((listinha_bunitinha, c))
+
+  for i in range(15):
+    a2 = np.transpose(listinha_bunitinha[i:])
+    a2 = np.reshape(a2, (a2.shape[0], a2.shape[1], 1))
+
+    c2 = model.predict(a2)
+    listinha_bunitinha = np.concatenate((listinha_bunitinha, c2))
+
+  predictions = scaler.inverse_transform(listinha_bunitinha[window_size+1:])
+
+
+  # rmse = np.sqrt(np.mean(((predictions - y_test)**2)))
+  # normalised_rmse = rmse/(max(y_test) - min(y_test))
+  # with open('plots/metrics_com', 'a') as f:
+  #   f.write('{},{},{}\n'.format(ticker, rmse, normalised_rmse))
 
   train = data[:training_data_len]
-  valid = data[training_data_len:]
+  valid = data[training_data_len:training_data_len+15]
   valid['Predictions'] = predictions
 
   plt.figure(figsize = (12, 8))
   # plt.title('model')
   plt.xlabel('Data')
   plt.ylabel('Cotação (USD)')
-  plt.plot(train['Adj Close'])
+  # plt.plot(train['Adj Close'])
   plt.plot(valid[['Adj Close', 'Predictions']])
   plt.xticks(set_ticks(), set_labels(), rotation = 45)
-  plt.legend(['Treinamento', 'Validação', 'Previsão'], loc = 'lower right')
-  plt.savefig('plots/{}.png'.format(ticker))
+  # plt.legend(['Treinamento', 'Validação', 'Previsão'], loc = 'lower right')
+  plt.legend(['Validation', 'Predictions'], loc = 'lower right')
+  plt.savefig('testando_{}.pdf'.format(ticker))
+  # plt.savefig('plots/{}.pdf'.format(ticker))
 
   # print('training_data_len: ', training_data_len)
   # print('tamanho train: ', len(train))

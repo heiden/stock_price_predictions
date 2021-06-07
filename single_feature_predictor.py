@@ -15,7 +15,7 @@ for ticker in tickers:
   data = df.filter(['Adj Close'])
   dataset = data.values
   training_data_len = math.ceil(len(dataset) * 0.80)
-  training_data_len = 1242
+  training_data_len = 1227
 
   scaler = MinMaxScaler(feature_range = (0, 1))
   scaled_data = scaler.fit_transform(dataset)
@@ -31,33 +31,41 @@ for ticker in tickers:
 
   x_train, y_train = np.array(x_train), np.array(y_train)
 
-  # re-shape for LSTM
+    # re-shape for LSTM
   x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
 
   # build model
   model = Sequential()
-  model.add(LSTM(64, return_sequences = True, input_shape = (x_train.shape[1], 1)))
-  model.add(LSTM(32, return_sequences=False))
-  model.add(Dense(1))
-  # model.add(LSTM(16, return_sequences = True, input_shape = (x_train.shape[1], 1)))
-  # model.add(LSTM(32, return_sequences = True))
-  # model.add(LSTM(32, return_sequences = True))
-  # model.add(LSTM(16, return_sequences = True))
+
+  # model.add(LSTM(64, return_sequences = True, input_shape = (x_train.shape[1], 1)))
+  # model.add(LSTM(32, return_sequences=False))
+  # model.add(Dense(1))
+
+  model.add(LSTM(128, return_sequences = True, input_shape = (x_train.shape[1], 1)))
+  model.add(LSTM(64, return_sequences = False))
+  # model.add(LSTM(64, return_sequences = True))
+  # model.add(LSTM(32, return_sequences = False))
   # model.add(LSTM(1, return_sequences = False))
+  model.add(Dense(16, activation='relu'))
+  model.add(Dense(1, activation='linear'))
+
   # # model.add(Dense(25))
   # # model.add(Dense(1))
 
-  model.compile(optimizer = 'adam', loss = 'mean_squared_error')
-  model.fit(x_train, y_train, batch_size = 1, epochs = 50)
+  # model.compile(optimizer = 'adam', loss = 'mean_squared_error')
+  # history = model.fit(x_train, y_train, batch_size = 64, epochs = 100)
 
   # parada do xande
-  # test_data = scaled_data[training_data_len - window_size:, :]
-  # x_test = []
-  # for i in range(window_size, len(test_data)):
-  #   x_test.append(test_data[i-window_size:i, 0])
-  # x_test = np.array(x_test)
-  # x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
-  # y_test = dataset[training_data_len:, :]
+  test_data = scaled_data[training_data_len - window_size:, :]
+  x_test = []
+  for i in range(window_size, len(test_data)):
+    x_test.append(test_data[i-window_size:i, 0])
+  x_test = np.array(x_test)
+  x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
+  y_test = dataset[training_data_len:, :]
+
+  model.compile(optimizer = 'rmsprop', loss = 'mean_squared_error')
+  history = model.fit(x_train, y_train, batch_size = 1, epochs = 250, validation_data=(x_test, scaler.fit_transform(y_test)))
 
   # predictions = model.predict(x_test)
   # predictions = scaler.inverse_transform(predictions)
@@ -68,14 +76,13 @@ for ticker in tickers:
   a = np.transpose(listinha_bunitinha)
   a = np.reshape(a, (a.shape[0], a.shape[1], 1))
 
-  b = [dataset[training_data_len:training_data_len+15]]
+  b = [dataset[training_data_len:training_data_len+30]]
   c = model.predict(a)
   listinha_bunitinha = np.concatenate((listinha_bunitinha, c))
 
-  for i in range(15):
+  for i in range(30):
     a2 = np.transpose(listinha_bunitinha[i:])
     a2 = np.reshape(a2, (a2.shape[0], a2.shape[1], 1))
-
     c2 = model.predict(a2)
     listinha_bunitinha = np.concatenate((listinha_bunitinha, c2))
 
@@ -86,6 +93,16 @@ for ticker in tickers:
   # normalised_rmse = rmse/(max(y_test) - min(y_test))
   # with open('plots/metrics_sem', 'a') as f:
   #   f.write('{},{},{}\n'.format(ticker, rmse, normalised_rmse))
+
+  loss = history.history['loss']
+  val_loss = history.history['val_loss']
+  epochs = range(1, len(loss) + 1)
+  plt.plot(epochs, loss, 'y', label='Erro no Treinamento')
+  plt.plot(epochs, val_loss, 'r', label='Erro na Validação')
+  plt.xlabel('Épocas')
+  plt.ylabel('Erro')
+  plt.legend()
+  plt.savefig('erro.png')
 
   train = data[:training_data_len+1]
   valid = data[training_data_len:]
