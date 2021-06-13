@@ -4,9 +4,10 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
+from keras.optimizers import Adam, RMSprop
 import matplotlib.pyplot as plt
 
-tickers = ['FB']
+tickers = ['AMZN']
 # tickers = ['AAPL', 'BRK-B', 'GOOG', 'MSFT', 'V', 'AMZN', 'FB', 'JNJ', 'PG', 'WMT']
 
 for ticker in tickers:
@@ -15,7 +16,6 @@ for ticker in tickers:
   data = df.filter(['Adj Close'])
   dataset = data.values
   training_data_len = math.ceil(len(dataset) * 0.80)
-  training_data_len = 1227
 
   scaler = MinMaxScaler(feature_range = (0, 1))
   scaled_data = scaler.fit_transform(dataset)
@@ -23,7 +23,7 @@ for ticker in tickers:
   train_data = scaled_data[0:training_data_len, :]
 
   x_train, y_train = [], []
-  window_size = 120
+  window_size = 90
 
   for i in range(window_size, len(train_data)):
     x_train.append(train_data[i-window_size:i, 0])
@@ -36,24 +36,15 @@ for ticker in tickers:
 
   # build model
   model = Sequential()
+  model.add(LSTM(50, return_sequences = True, input_shape = (x_train.shape[1], 1)))
+  model.add(LSTM(50, return_sequences = False))
+  model.add(Dense(25))
+  model.add(Dense(1))
 
-  # model.add(LSTM(64, return_sequences = True, input_shape = (x_train.shape[1], 1)))
-  # model.add(LSTM(32, return_sequences=False))
-  # model.add(Dense(1))
-
-  model.add(LSTM(128, return_sequences = True, input_shape = (x_train.shape[1], 1)))
-  model.add(LSTM(64, return_sequences = False))
-  # model.add(LSTM(64, return_sequences = True))
-  # model.add(LSTM(32, return_sequences = False))
-  # model.add(LSTM(1, return_sequences = False))
-  model.add(Dense(16, activation='relu'))
-  model.add(Dense(1, activation='linear'))
-
-  # # model.add(Dense(25))
-  # # model.add(Dense(1))
-
-  # model.compile(optimizer = 'adam', loss = 'mean_squared_error')
-  # history = model.fit(x_train, y_train, batch_size = 64, epochs = 100)
+  # model.add(LSTM(128, return_sequences = True, input_shape = (x_train.shape[1], 1)))
+  # model.add(LSTM(64, return_sequences = False))
+  # model.add(Dense(16, activation='relu'))
+  # model.add(Dense(1, activation='linear'))
 
   # parada do xande
   test_data = scaled_data[training_data_len - window_size:, :]
@@ -64,29 +55,13 @@ for ticker in tickers:
   x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
   y_test = dataset[training_data_len:, :]
 
-  model.compile(optimizer = 'rmsprop', loss = 'mean_squared_error')
-  history = model.fit(x_train, y_train, batch_size = 1, epochs = 250, validation_data=(x_test, scaler.fit_transform(y_test)))
+  # optimizer = Adam(learning_rate = 0.001)
+  # model.compile(optimizer = optimizer, loss = 'mean_squared_error')
+  model.compile(optimizer = 'adam', loss = 'mean_squared_error')
+  history = model.fit(x_train, y_train, batch_size = 1, epochs = 50, validation_data=(x_test, scaler.fit_transform(y_test)))
 
-  # predictions = model.predict(x_test)
-  # predictions = scaler.inverse_transform(predictions)
-  # ------
-
-  # parada do gu
-  listinha_bunitinha = scaled_data[training_data_len - window_size:training_data_len]
-  a = np.transpose(listinha_bunitinha)
-  a = np.reshape(a, (a.shape[0], a.shape[1], 1))
-
-  b = [dataset[training_data_len:training_data_len+30]]
-  c = model.predict(a)
-  listinha_bunitinha = np.concatenate((listinha_bunitinha, c))
-
-  for i in range(30):
-    a2 = np.transpose(listinha_bunitinha[i:])
-    a2 = np.reshape(a2, (a2.shape[0], a2.shape[1], 1))
-    c2 = model.predict(a2)
-    listinha_bunitinha = np.concatenate((listinha_bunitinha, c2))
-
-  predictions = scaler.inverse_transform(listinha_bunitinha[window_size+1:])
+  predictions = model.predict(x_test)
+  predictions = scaler.inverse_transform(predictions)
   # ------
 
   # rmse = np.sqrt(np.mean(((predictions - y_test)**2)))
@@ -102,7 +77,7 @@ for ticker in tickers:
   plt.xlabel('Épocas')
   plt.ylabel('Erro')
   plt.legend()
-  plt.savefig('erro.png')
+  plt.savefig('erro.pdf')
 
   train = data[:training_data_len+1]
   valid = data[training_data_len:]
@@ -112,11 +87,12 @@ for ticker in tickers:
   plt.title('model')
   plt.xlabel('date', fontsize = 14)
   plt.ylabel('predicted price', fontsize = 14)
-  # plt.plot(train['Adj Close'])
-  plt.plot(valid[['Adj Close', 'Predictions']])
-  # plt.legend(['Train', 'Validation', 'Predictions'], loc = 'lower right')
-  plt.legend(['Validation', 'Predictions'], loc = 'lower right')
-  plt.savefig('single_feature_fb.pdf')
+  plt.plot(train['Adj Close'], 'darkorchid', label = 'Training Split')
+  plt.plot(valid['Adj Close'], 'gold', label = 'Validation Split')
+  plt.plot(valid['Predictions'], 'limegreen', label = 'Predictions')
+  plt.legend(loc = 'lower right')
+  # plt.legend(['Validation', 'Predictions'], loc = 'lower right')
+  plt.savefig('playground.pdf')
 
   # print('training_data_len: ', training_data_len)
   # print('tamanho train: ', len(train))
