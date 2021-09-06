@@ -8,6 +8,9 @@ from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 14})
+plt.rcParams["font.weight"] = "bold"
+plt.rcParams["axes.labelweight"] = "bold"
 
 def set_ticks():
   return [
@@ -120,11 +123,11 @@ for i in range(runs):
 
     plt.figure(figsize = (12, 8))
     # plt.title('model')
-    plt.xlabel('Date')
-    plt.ylabel('Stock Price (USD)')
-    plt.plot(train['Adj Close'], 'darkorchid', label = 'Training Split')
-    plt.plot(valid['Adj Close'], 'firebrick', label = 'Validation Split')
-    plt.plot(valid['Predictions'], 'limegreen', label = 'Predictions')
+    plt.xlabel('Data')
+    plt.ylabel('Cotação (USD)')
+    plt.plot(train['Adj Close'], 'darkorchid', label = 'Divisão de Treinamento')
+    plt.plot(valid['Adj Close'], 'firebrick', label = 'Divisão de Validação')
+    plt.plot(valid['Predictions'], 'limegreen', label = 'Previsões')
     plt.xticks(set_ticks(), set_labels(), rotation = 45)
     plt.legend(loc = 'lower right')
     # plt.savefig('playground_2f_{}.pdf'.format(ticker))
