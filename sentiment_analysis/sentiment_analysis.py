@@ -17,10 +17,14 @@ def export(dataframe, year, ticker):
       file.write('\n')
 
 
-# years = ['2016', '2017', '2018']
-# tickers = ['AAPL', 'MSFT', 'AMZN', 'GOOG', 'FB', 'BRK-B', 'V', 'WMT', 'JNJ', 'PG']
-years = ['2016']
-tickers = ['GOOG']
+years = ['2020']
+tickers = [
+  'AAPL', 'MSFT', 'AMZN', 'FB', 'GOOG', 'NVDA', 'TSLA', 'BRK-B', 'JPM', 'JNJ',
+  'UNH', 'V', 'PG', 'HD', 'PYPL', 'DIS', 'ADBE', 'BAC', 'MA', 'CMCSA',
+  'PFE', 'NFLX', 'CRM', 'CSCO', 'XOM', 'VZ', 'ABT', 'TMO', 'KO', 'ACN',
+  'PEP', 'INTC', 'DHR', 'NKE', 'LLY', 'WMT', 'COST', 'AVGO', 'ABBV', 'T',
+  'MRK', 'CVX', 'WFC', 'MDT', 'MCD', 'TXN', 'NEE', 'PM', 'ORCL'
+]
 
 for year in years:
   for ticker in tickers:
